@@ -11,7 +11,7 @@
 
 RCT_EXPORT_MODULE();
 
-RCT_REMAP_METHOD(open, filePath:(NSString *)filePath fileMine:(NSString *)fileMine fromRect:(CGRectMake)rect
+RCT_REMAP_METHOD(open, filePath:(NSString *)filePath fileMine:(NSString *)fileMine
                  resolver:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -30,12 +30,14 @@ RCT_REMAP_METHOD(open, filePath:(NSString *)filePath fileMine:(NSString *)fileMi
     
     UIViewController *ctrl = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
     
-    BOOL wasOpened = [self.FileOpener presentOpenInMenuFromRect:ctrl.view.bounds inView:ctrl.view animated:YES];
+    BOOL wasOpened = false;
         
     if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
     {
-        wasOpened = [self.FileOpener presentOptionsMenuFromRect:rect inView:ctrl.view animated:YES];
-    }
+         wasOpened = [self.FileOpener presentOptionsMenuFromRect:CGRectMake(0, 0, 0, 0) inView:ctrl.view animated:YES];
+    }else{
+		wasOpened = [self.FileOpener presentOpenInMenuFromRect:ctrl.view.bounds inView:ctrl.view animated:YES];
+	}
     
     if (wasOpened) {
         resolve(@"Open success!!");
