@@ -2,6 +2,7 @@ package com.fileopener;
 
 import java.io.File;
 
+import android.os.Build;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -43,24 +44,34 @@ public class FileOpener extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void open(String fileArg, String contentType, Promise promise) throws JSONException {
-  		File file = new File(fileArg);
+	File file = new File(fileArg);
 
-  		if (file.exists()) {
-  			try {
-          Uri path = FileProvider.getUriForFile(getReactApplicationContext(), getReactApplicationContext().getPackageName() + ".fileprovider", file);
-  				Intent intent = new Intent(Intent.ACTION_VIEW);
-  				intent.setDataAndType(path, contentType);
-          intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-          intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-  				getReactApplicationContext().startActivity(intent);
+	if (file.exists()) {
+		try {
+			Uri path = null;
+			if (Build.VERSION.SDK_INT >= 24) {
+				path = FileProvider.getUriForFile(getReactApplicationContext(), getReactApplicationContext().getPackageName() + ".fileprovider", file);
+			} else {
+				path = Uri.fromFile(file);
+			}
+			
+			if (path != null) {
+				Intent intent = new Intent(Intent.ACTION_VIEW);
+				intent.setDataAndType(path, contentType);
+				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+				getReactApplicationContext().startActivity(intent);
 
-                promise.resolve("Open success!!");
-  			} catch (android.content.ActivityNotFoundException e) {
-                promise.reject("Open error!!");
-  			}
-  		} else {
-            promise.reject("File not found");
-  		}
-  	}
+				promise.resolve("Open success!!");
+			} else {
+				promise.reject("File not found");
+			}				
+		} catch (android.content.ActivityNotFoundException e) {
+			promise.reject("Open error!!");
+		}
+	} else {
+		promise.reject("File not found");
+	}
+  }
 
 }
